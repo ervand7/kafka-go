@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  zookeeper:
+    image: bitnami/zookeeper:3.8
+    container_name: zookeeper
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
+    ports:
+      - "2181:2181"
+
+  kafka:
+    image: bitnami/kafka:3.6
+    container_name: kafka
+    depends_on:
+      - zookeeper
+    environment:
+      - KAFKA_BROKER_ID=1
+      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://0.0.0.0:9092
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
+      - ALLOW_PLAINTEXT_LISTENER=yes
+    ports:
+      - "9092:9092"
+
+  producer:
+    build: .
+    container_name: producer
+    depends_on:
+      - kafka
+    environment:
+      - TOPIC=orders
+
+  consumer:
+    build: .
+    container_name: consumer
+    depends_on:
+      - kafka
+    environment:
+      - TOPIC=orders
+
+  console:
+    image: redpandadata/console:latest
+    container_name: kafka-console
+    depends_on:
+      - kafka
+    environment:
+      - KAFKA_BROKERS=kafka:9092
+    ports:
+      - "8080:8080"

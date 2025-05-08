@@ -1,0 +1,16 @@
+docker compose up -d
+
+docker exec -it kafka kafka-topics.sh \
+  --create \
+  --topic orders \
+  --partitions 3 \
+  --replication-factor 1 \
+  --if-not-exists \
+  --bootstrap-server kafka:9092
+
+docker compose restart producer
+docker compose logs -f producer
+docker compose build consumer
+docker compose up -d consumer
+docker compose logs -f consumer
+
