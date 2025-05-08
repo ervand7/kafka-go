@@ -26,11 +26,14 @@ func main() {
 	groupID := "order-consumer-group"
 
 	reader := kafka.NewReader(kafka.ReaderConfig{
-		Brokers:     []string{"kafka:9092"},
-		GroupID:     groupID,
-		Topic:       topic,
-		StartOffset: kafka.FirstOffset,
-		MaxWait:     500 * time.Millisecond,
+		Brokers:        []string{"kafka:9092"},
+		GroupID:        groupID,
+		Topic:          topic,
+		StartOffset:    kafka.FirstOffset,
+		CommitInterval: 0,    // <- disables auto-commit
+		MinBytes:       10e3, // tuning read behavior
+		MaxBytes:       10e6,
+		MaxWait:        500 * time.Millisecond,
 	})
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -60,5 +63,11 @@ func main() {
 		}
 
 		log.Printf("✅ Read message at offset %d (partition %d): %+v", m.Offset, m.Partition, order)
+
+		if err := reader.CommitMessages(ctx, m); err != nil {
+			log.Printf("❌ failed to commit: %v", err)
+		} else {
+			log.Printf("✅ committed offset %d (partition %d)", m.Offset, m.Partition)
+		}
 	}
 }

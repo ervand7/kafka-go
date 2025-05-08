@@ -14,3 +14,8 @@ docker compose build consumer
 docker compose up -d consumer
 docker compose logs -f consumer
 
+open http://localhost:8080
+open http://localhost:8081
+
+docker compose up -d --scale consumer=2
+
