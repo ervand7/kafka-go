@@ -19,3 +19,14 @@ open http://localhost:8081
 
 docker compose up -d --scale consumer=2
 
+
+docker exec -it kafka kafka-topics.sh \
+  --create \
+  --topic orders-taxed \
+  --partitions 3 \
+  --replication-factor 1 \
+  --bootstrap-server kafka:9092
+
+docker compose build processor
+docker compose up -d processor
+docker compose logs -f processor

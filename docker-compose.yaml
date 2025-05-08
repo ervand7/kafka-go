@@ -48,3 +48,19 @@ services:
     environment:
       - TOPIC=orders
     command: go run ./cmd/consumer/main.go   # ⬅️ run the consumer code instead
+
+  processor:
+    build: .
+    depends_on:
+      - kafka
+    command: go run ./cmd/processor/main.go
+
+  console:
+    image: redpandadata/console:latest
+    container_name: kafka-console
+    depends_on:
+      - kafka
+    environment:
+      - KAFKA_BROKERS=kafka:9092
+    ports:
+      - "8080:8080"
