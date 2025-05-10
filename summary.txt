@@ -3,4 +3,12 @@ docker compose logs -f consumer
 docker compose logs -f processor
 docker compose logs -f reporter
 
+http://localhost:8080 - kafka ui (Repanda)
+http://localhost:8090 - kafka ui
+
 docker compose up -d dlq-viewer && docker attach $(docker compose ps -q dlq-viewer)
+
+Kafka Broker logs:
+docker compose logs kafka
+
+Kafka topics logs:

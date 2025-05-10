@@ -92,3 +92,12 @@ services:
              python dlq_viewer.py"
     stdin_open: true   # needed for interactive input
     tty: true
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui
+    ports:
+      - "8090:8080"
+    environment:
+      - KAFKA_CLUSTERS_0_NAME=local
+      - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka:9092
+
