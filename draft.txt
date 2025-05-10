@@ -1,0 +1,24 @@
+Persistence — write reporter summaries to  ClickHouse.
+Metrics — expose /metrics and view totals in Grafana.
+ Scaling — docker compose up -d --scale reporter=3 to fan-out processing.
+
+
+
+
+6 · (Optionally) add a DLQ viewer service
+
+Later you can create a tiny Go / Node / Python script that:
+
+reads orders-dlq,
+prints or stores to a DB for manual cleanup,
+optionally republishes fixed messages back to the original topic.
+
+
+
+
+Next possible enhancements:
+
+Monitoring: count DLQ writes per minute in Prometheus.
+Retry topic: after human fix, move messages to orders-retry for replay.
+Exactly-once flow with idempotent producers.
+Just let me know which direction you want to continue!

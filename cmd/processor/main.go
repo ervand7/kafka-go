@@ -6,8 +6,11 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"time"
 
 	"github.com/segmentio/kafka-go"
+
+	"kafka-go-lab/internal/dlq"
 )
 
 type Order struct {
@@ -34,6 +37,8 @@ func main() {
 		Topic:   "orders-taxed",
 	})
 
+	dlqWriter := dlq.NewWriter()
+
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -41,23 +46,30 @@ func main() {
 		c := make(chan os.Signal, 1)
 		signal.Notify(c, os.Interrupt)
 		<-c
-		log.Println("🛑 Shutting down processor...")
+		log.Println("🛑 Processor stopping...")
 		reader.Close()
 		writer.Close()
+		dlqWriter.Close()
 		cancel()
 	}()
 
 	log.Println("🚀 Processor started.")
 	for {
-		m, err := reader.ReadMessage(ctx)
+		msg, err := reader.ReadMessage(ctx)
 		if err != nil {
 			log.Printf("❌ read error: %v", err)
-			continue
+			break
 		}
 
 		var order Order
-		if err := json.Unmarshal(m.Value, &order); err != nil {
-			log.Printf("⚠️ invalid message: %s", m.Value)
+		if err := json.Unmarshal(msg.Value, &order); err != nil {
+			dlq.Send(ctx, dlqWriter, dlq.FailedMessage{
+				SourceTopic: "orders",
+				Error:       "json_unmarshal",
+				Payload:     msg.Value,
+				Timestamp:   time.Now().UnixMilli(),
+			})
+			_ = reader.CommitMessages(ctx, msg)
 			continue
 		}
 
@@ -73,13 +85,21 @@ func main() {
 			Key:   []byte("tax"),
 			Value: value,
 		}); err != nil {
-			log.Printf("❌ write error: %v", err)
-		} else {
-			log.Printf("✅ processed order %d → taxed %.2f", order.ID, enriched.Tax)
+			// produce failed → DLQ
+			dlq.Send(ctx, dlqWriter, dlq.FailedMessage{
+				SourceTopic: "orders",
+				Error:       "produce_failed",
+				Payload:     msg.Value,
+				Timestamp:   time.Now().UnixMilli(),
+			})
+			_ = reader.CommitMessages(ctx, msg)
+			continue
 		}
 
-		if err := reader.CommitMessages(ctx, m); err != nil {
+		if err := reader.CommitMessages(ctx, msg); err != nil {
 			log.Printf("⚠️ commit error: %v", err)
+		} else {
+			log.Printf("✅ processed order %d (tax %.2f)", order.ID, enriched.Tax)
 		}
 	}
 }

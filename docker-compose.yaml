@@ -61,6 +61,14 @@ services:
     volumes:
       - .:/app
 
+  reporter:
+    build: .
+    depends_on:
+      - kafka
+    command: go run ./cmd/reporter/main.go
+    volumes:
+      - .:/app
+
   console:
     image: redpandadata/console:latest
     container_name: kafka-console
