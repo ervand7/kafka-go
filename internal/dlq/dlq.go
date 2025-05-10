@@ -11,7 +11,7 @@ import (
 type FailedMessage struct {
 	SourceTopic string `json:"source_topic"`
 	Error       string `json:"error"`
-	Payload     []byte `json:"payload"` // raw bytes
+	Payload     []byte `json:"payload"`
 	Timestamp   int64  `json:"ts"`
 }
 
@@ -24,7 +24,7 @@ func NewWriter() *kafka.Writer {
 }
 
 func Send(ctx context.Context, w *kafka.Writer, fm FailedMessage) {
-	bytes, _ := json.Marshal(fm) // never fails
+	bytes, _ := json.Marshal(fm)
 	_ = w.WriteMessages(ctx, kafka.Message{
 		Key:   []byte(fm.SourceTopic),
 		Value: bytes,
