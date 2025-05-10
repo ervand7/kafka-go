@@ -7,8 +7,7 @@ Metrics — expose /metrics and view totals in Grafana.
 
 6 · (Optionally) add a DLQ viewer service
 
-Later you can create a tiny Go / Node / Python script that:
-
+Later you can create a tiny Python script that:
 reads orders-dlq,
 prints or stores to a DB for manual cleanup,
 optionally republishes fixed messages back to the original topic.

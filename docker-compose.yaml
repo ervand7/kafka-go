@@ -78,3 +78,14 @@ services:
       - KAFKA_BROKERS=kafka:9092
     ports:
       - "8080:8080"
+
+  dlq-viewer:
+    image: python:3.12-alpine
+    depends_on: [kafka]
+    volumes: ["./:/app"]
+    working_dir: /app
+    command: >
+      sh -c "pip install --no-cache kafka-python &&
+             python dlq_viewer.py"
+    stdin_open: true   # needed for interactive input
+    tty: true
