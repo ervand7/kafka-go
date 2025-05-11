@@ -56,12 +56,21 @@ Welcome to the **Kafka Go Lab**! This project is a comprehensive demonstration o
 - **Reporter**: Summarizes the total tax calculated from processed messages.
 - **DLQ Viewer**: Run the DLQ viewer to manage failed messages:
   ```bash
-  docker-compose up dlq-viewer
+  docker compose up -d dlq-viewer && docker attach $(docker compose ps -q dlq-viewer)
   ```
 
 ### Retry Strategy
 
 The project includes a manual retry strategy for failed messages using the DLQ viewer. Operators can choose to retry sending messages back to the original topic.
+
+### Monitoring Consumer Lag
+
+You can monitor consumer lag directly using Kafka UI, which is already set up in your project. Kafka UI provides a user-friendly interface to view consumer group lags, topic details, and more. To access Kafka UI, navigate to:
+
+- [Kafka UI (Repanda)](http://localhost:8080)
+- [Kafka UI](http://localhost:8090)
+
+In the Kafka UI, you can find the consumer lag metrics under the consumer groups section, allowing you to ensure that your consumers are keeping up with the message production rate.
 
 ## Contributing
 
